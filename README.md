@@ -15,3 +15,11 @@ docker run --rm -i --mount type=bind,source=/absolute/path/config.local.json,tar
 CI scans images and Python source. Daily remediation validates pinned Python image updates before opening a PR. Set repository variable SECURITY_APP_ID and secret SECURITY_APP_PRIVATE_KEY using a GitHub App installed on this repository with Contents, Pull requests and Issues write permissions. Require passing checks and human review on main. Review findings without a patch in the daily tracking issue.
 
 Related repositories: [server](https://github.com/athegreat90/ai-watch-server) [firmware](https://github.com/athegreat90/ai-watch-firmware)
+
+## Zsh on Linux and macOS
+
+Run `zsh scripts/install-ai-hooks.zsh` to register hooks or
+`zsh scripts/install-ai-hooks.zsh --uninstall` to remove them.
+Pass `--agent codex`, `--agent claude`, or `--agent gemini` to target one CLI.
+The script prefers `python3.15`; set `AI_WATCH_PYTHON` to select a different path.
+The installer checks the exact version in `.python-version` before registration.
