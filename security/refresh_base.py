@@ -4,11 +4,12 @@ import re
 import urllib.request
 from pathlib import Path
 
+VARIANT = "slim-trixie"  # Debian release of the base image; change here to switch
 dockerfile = Path("Dockerfile")
 source = dockerfile.read_text()
-current = re.search(r"^FROM python:(\d+\.\d+\.\d+)-slim-bookworm@sha256:[0-9a-f]{64}$", source, re.M)
+current = re.search(r"^FROM python:(\d+\.\d+\.\d+)-slim-[a-z]+@sha256:[0-9a-f]{64}$", source, re.M)
 series = current[1].rsplit(".", 1)[0]
-tag = f"{series}-slim-bookworm"
+tag = f"{series}-{VARIANT}"
 def fetch(url, **headers):
     return urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=30)
 
@@ -23,14 +24,14 @@ with fetch(f"https://hub.docker.com/v2/repositories/library/python/tags/{tag}") 
     digest = json.load(response)["digest"]
 with fetch(f"https://hub.docker.com/v2/repositories/library/python/tags?page_size=100&name={series}") as response:
     listing = json.load(response)["results"]
-versions = [row["name"].removesuffix("-slim-bookworm") for row in listing
-            if row.get("digest") == digest and re.fullmatch(re.escape(series) + r"\.\d+-slim-bookworm", row["name"])]
+versions = [row["name"].removesuffix("-" + VARIANT) for row in listing
+            if row.get("digest") == digest and re.fullmatch(re.escape(series) + r"\.\d+-" + re.escape(VARIANT), row["name"])]
 version = max(versions, key=lambda value: tuple(map(int, value.split(".")))) if versions else current[1]
 if tuple(map(int, version.split("."))) < tuple(map(int, current[1].split("."))):
     version = current[1]
-image, digest = manifest(f"{version}-slim-bookworm")
+image, digest = manifest(f"{version}-{VARIANT}")
 platforms = {(row.get("platform", {}).get("os"), row.get("platform", {}).get("architecture")) for row in image["manifests"]}
 if not {("linux", "amd64"), ("linux", "arm64")} <= platforms:
     raise SystemExit("Candidate lacks a required architecture.")
-dockerfile.write_text(source.replace(current[0], f"FROM python:{version}-slim-bookworm@{digest}"))
+dockerfile.write_text(source.replace(current[0], f"FROM python:{version}-{VARIANT}@{digest}"))
 Path(".python-version").write_text(version + "\n")

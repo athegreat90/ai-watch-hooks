@@ -7,6 +7,7 @@ for arch in amd64 arm64; do
   test -s "security-results/$arch.json" || { tail -n 30 "$report"; exit 1; }
   python security/check_findings.py "security-results/$arch.json" >>"$baseline" || true
 done
+sort -u -o "$baseline" "$baseline"  # the amd64 and arm64 reports repeat most findings
 if [ -s "$baseline" ]; then
   jq -Rs '{title:"Daily container vulnerability findings",body:.}' "$baseline" >"$report"
   issue=$(gh issue list --state open --search '"Daily container vulnerability findings" in:title' --json number,title --jq '.[] | select(.title=="Daily container vulnerability findings") | .number' | head -1)

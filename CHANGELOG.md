@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.1.2]
+
+- Move the container base image from Debian bookworm to trixie (`python:3.15.2-slim-trixie`) to reduce unfixed OS vulnerabilities; `security/refresh_base.py` follows the variant set in `VARIANT`.
+- List each finding once in the daily vulnerability issue.
+
 ## [1.1.1]
 
 - Accept an `https` origin in `url` (certificate and host name verified, 2 s timeout). Plain `http` still requires a private IPv4 or loopback.

@@ -1,4 +1,4 @@
-FROM python:3.15.2-slim-bookworm@sha256:96599df822d0e1c6bb700014a05c7f3c8cabc6e0f7ff3c4f9f69cee033b4b5d9
+FROM python:3.15.2-slim-trixie@sha256:65a65fc7b30b06cb6df4930fd4650697cb23f4c2698ab81fc87e4b031bc36928
 
 # The application uses only the standard library. Remove installer tooling and its vendored packages.
 RUN python -m pip uninstall --yes setuptools msgpack urllib3 pip \
