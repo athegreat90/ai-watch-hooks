@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [1.1.2]
+
+- List each finding once in the daily vulnerability issue.
+
 ## [1.1.1]
 
 - Accept an `https` origin in `url` (certificate and host name verified, 2 s timeout). Plain `http` still requires a private IPv4 or loopback.
