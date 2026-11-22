@@ -48,7 +48,7 @@ Clone this repository into a permanent directory, because hook registrations use
 
 | Key | Meaning |
 |---|---|
-| `url` | Server origin. It must be a private IPv4 (`10.x`, `172.16-31.x`, `192.168.x`) or loopback over plain `http`, with no path |
+| `url` | Server origin. Either an `https` origin with a host name (the certificate is verified), or a private IPv4 (`10.x`, `172.16-31.x`, `192.168.x`) or loopback over plain `http`. No path or user name |
 | `token` | The server's token (`X-Monitor-Key`) |
 
 ## Choose agents and uninstall
@@ -88,7 +88,7 @@ Codex limits are read from its latest session log after each event. Claude Code 
 ## Troubleshooting
 
 - Nothing appears on the watch: run `bridge/send.py` as in the quick start, then check `url` and `token`. HTTP 401 means the token differs from the server's.
-- `url` is rejected: use a private IPv4 address over `http`, not a host name or `https`.
+- `url` is rejected: use an `https` origin, or a private IPv4 address over `http`. A host name over plain `http` is not accepted.
 - Agent does not report after installing: restart the CLI. In Codex, trust the commands under `/hooks`.
 - On Windows, hook commands use forward slashes because Claude Code runs hooks through Git Bash. Re-running the installer replaces old entries.
 

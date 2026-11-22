@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [1.1.1]
+
+- Accept an `https` origin in `url` (certificate and host name verified, 2 s timeout). Plain `http` still requires a private IPv4 or loopback.
+
 ## [1.1.0]
 
 - Add GitHub Copilot CLI (`~/.copilot/hooks/ai-watch.json`) and Antigravity (`~/.gemini/config/hooks.json`) agents.
