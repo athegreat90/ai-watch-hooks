@@ -3,6 +3,7 @@ import hashlib
 import http.client
 import ipaddress
 import json
+import ssl
 import sys
 import time
 from pathlib import Path
@@ -64,12 +65,18 @@ def to_event(info, agent, event=None):
 def send(event, path="/api/events"):
     config = json.loads(CONFIG.read_text(encoding="utf-8-sig"))
     target = urlsplit(config["url"])
-    address = ipaddress.IPv4Address(target.hostname)
-    private = address.is_loopback or any(address in ipaddress.IPv4Network(network) for network in
-                                         ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"))
-    if target.scheme != "http" or not private or target.username or target.path not in ("", "/"):
-        raise ValueError("Use a private IPv4 HTTP origin")
-    connection = http.client.HTTPConnection(str(address), target.port or 8765, timeout=0.5)
+    if target.username or target.path not in ("", "/") or not target.hostname:
+        raise ValueError("Use a private IPv4 HTTP origin or an HTTPS origin")
+    if target.scheme == "https":  # the default context verifies the certificate and host name
+        connection = http.client.HTTPSConnection(target.hostname, target.port or 443, timeout=2,
+                                                 context=ssl.create_default_context())
+    else:
+        address = ipaddress.IPv4Address(target.hostname)
+        private = address.is_loopback or any(address in ipaddress.IPv4Network(network) for network in
+                                             ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"))
+        if target.scheme != "http" or not private:
+            raise ValueError("Use a private IPv4 HTTP origin or an HTTPS origin")
+        connection = http.client.HTTPConnection(str(address), target.port or 8765, timeout=0.5)
     try:
         connection.request("POST", path, json.dumps(event), {
             "Content-Type": "application/json", "X-Monitor-Key": config["token"],

@@ -57,6 +57,24 @@ class HooksTests(unittest.TestCase):
                 thread.join()
         self.assertEqual(events, [("/api/events", "fixture", "working")])
 
+    def test_origin_rules(self):
+        def send(url):
+            with tempfile.TemporaryDirectory(prefix="ai watch ") as directory:
+                config = Path(directory) / "config.local.json"
+                config.write_text(json.dumps({"url": url, "token": "fixture"}), encoding="utf-8")
+                with patch.object(hook, "CONFIG", config):
+                    return hook.send({"status": "working"})
+
+        with patch.object(hook.http.client, "HTTPSConnection") as https:
+            https.return_value.getresponse.return_value.status = 200
+            self.assertEqual(send("https://aiwatchserver.example.org/"), 200)
+            self.assertEqual(https.call_args.args, ("aiwatchserver.example.org", 443))
+            self.assertTrue(https.call_args.kwargs["context"].check_hostname)
+        for url in ("http://aiwatchserver.example.org", "http://8.8.8.8:8765", "https://user@example.org",
+                    "https://example.org/path"):
+            with self.subTest(url=url), self.assertRaises(ValueError):
+                send(url)
+
     def test_hook_privacy_and_mapping(self):
         info = {"session_id": "id", "cwd": r"C:\private\workspace",
                 "hook_event_name": "AfterTool", "prompt": "private prompt",
