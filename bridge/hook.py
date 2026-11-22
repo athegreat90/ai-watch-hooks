@@ -24,11 +24,19 @@ STATES = {
     "AfterAgent": ("done", "Turn finished"),
     "SessionEnd": ("done", "Session closed"),
     "Interrupt": ("idle", "Turn interrupted"),
+    "ErrorOccurred": ("error", "Turn failed"),
+    # Antigravity has no permission event; its hooks fire per model call and tool.
+    "PreInvocation": ("working", "Turn started"),
 }
+AGENTS = {"codex": "Codex", "claude": "Claude Code", "gemini": "Gemini CLI",
+          "copilot": "GitHub Copilot CLI", "antigravity": "Antigravity"}
 
-def to_event(info, agent):
-    name = info.get("hook_event_name")
-    session = info.get("session_id")
+def to_event(info, agent, event=None):
+    # Antigravity payloads carry no event name (the installer passes it as argv) and use camelCase.
+    name = info.get("hook_event_name") or event
+    session = info.get("session_id") or info.get("conversationId")
+    if agent == "antigravity" and name == "Stop" and info.get("fullyIdle") is False:
+        return None
     if not isinstance(session, str) or not session:
         return None
     if name == "Notification":
@@ -43,15 +51,17 @@ def to_event(info, agent):
     else:
         return None
     cwd = info.get("cwd")
+    if cwd is None and isinstance(info.get("workspacePaths"), list) and info["workspacePaths"]:
+        cwd = info["workspacePaths"][0]
     project = cwd.replace(chr(92), "/").rstrip("/").rsplit("/", 1)[-1] if isinstance(cwd, str) else ""
     return {
         "session_id": hashlib.sha256(session.encode()).hexdigest(),
-        "agent": {"codex": "Codex", "claude": "Claude Code", "gemini": "Gemini CLI"}[agent],
+        "agent": AGENTS[agent],
         "project": (project or "Project")[:40], "status": state, "detail": detail,
         "timestamp": time.time(),
     }
 
-def send(event):
+def send(event, path="/api/events"):
     config = json.loads(CONFIG.read_text(encoding="utf-8-sig"))
     target = urlsplit(config["url"])
     address = ipaddress.IPv4Address(target.hostname)
@@ -61,7 +71,7 @@ def send(event):
         raise ValueError("Use a private IPv4 HTTP origin")
     connection = http.client.HTTPConnection(str(address), target.port or 8765, timeout=0.5)
     try:
-        connection.request("POST", "/api/events", json.dumps(event), {
+        connection.request("POST", path, json.dumps(event), {
             "Content-Type": "application/json", "X-Monitor-Key": config["token"],
         })
         return connection.getresponse().status
@@ -71,9 +81,17 @@ def send(event):
 if __name__ == "__main__":
     agent = sys.argv[1]
     try:
-        event = to_event(json.loads(sys.stdin.buffer.read(1024 * 1024)), agent)
+        event = to_event(json.loads(sys.stdin.buffer.read(1024 * 1024)), agent,
+                         sys.argv[2] if len(sys.argv) > 2 else None)
         if event:
             send(event)
+        if agent == "codex" and event:
+            try:
+                import limits  # the one-shot Docker image ships hook.py only
+            except ImportError:
+                limits = None
+            if limits:
+                limits.report_codex()
     except (OSError, ValueError, TypeError, KeyError, AttributeError, RecursionError, http.client.HTTPException):
         pass
     if agent == "gemini":
