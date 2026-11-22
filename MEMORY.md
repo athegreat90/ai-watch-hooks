@@ -7,3 +7,5 @@ Docs decisions (2026-11-21): doc changes are folded into 1.1.0 (no new version).
 Trivy 0.76.2 is pinned by multi-platform image digest. The Zsh scripts resolve the repo from the script location and support overriding the interpreter with AI_WATCH_PYTHON.
 
 HTTPS origin decision (2026-11-22, v1.1.1): `url` may be an https origin (any host name). It uses the default SSL context, so the certificate and host name are verified, with a 2 s timeout for the handshake. Plain http still requires a private IPv4 or loopback, with the 0.5 s timeout. Version 1.1.1 comes from the release automation (patch tag), not a version file.
+
+Base image decision (2026-11-22, v1.1.2): issue #9 lists only HIGH/CRITICAL Debian bookworm CVEs without a published fix, so CI stays green (check_findings.py fails only when a fix exists). Debian trixie was tried (PR #10) and rejected: 51 unique findings on amd64 versus 45 on bookworm, and one already-fixed zlib1g finding made the image check fail. Keep python:3.15.2-slim-bookworm and leave #9 as a tracking issue. The daily report is deduplicated with sort -u.
