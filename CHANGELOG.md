@@ -16,6 +16,7 @@
 - `install.py` skips the exact-Python-patch check when `.python-version` is absent, as in the standalone bundle. A clone still enforces it.
 - `hook.py` builds its connection in a new `connect()` function; delivery behavior is unchanged.
 - The release version now follows the newest `## [X.Y.Z]` heading of this changelog when it is higher than the next patch, so a minor release is declared by editing the changelog.
+- Update `actions/create-github-app-token` to 3.4.0 in the daily remediation workflow (replaces Dependabot PR #12).
 - README rewritten: standalone install, options, update, uninstall, migration, privacy and security, troubleshooting, layout.
 
 ### Fixed
