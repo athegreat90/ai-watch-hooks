@@ -25,14 +25,26 @@ def qualifies(paths):
                if not path.lower().endswith((".md", ".zip")))
 
 
-def choose_tag(tags, sha):
+def declared_version(changelog="CHANGELOG.md"):
+    """Return the newest released heading (## [X.Y.Z]) of the changelog as a tuple, or None."""
+    try:
+        text = Path(changelog).read_text(encoding="utf-8")
+    except OSError:
+        return None
+    return max((tuple(map(int, found.groups())) for found in re.finditer(
+        r"^## \[(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\]", text, re.MULTILINE)), default=None)
+
+
+def choose_tag(tags, sha, declared=None):
+    """Pick the tag for a commit: the one already reserved for it, else the next patch or a higher declared version."""
     reserved = sorted((tag for tag, commit in tags.items() if commit == sha), key=version)
     if reserved:
         if len(reserved) != 1:
             raise SystemExit("Multiple stable tags already point to this commit.")
         return reserved[0]
     major, minor, patch = max(map(version, tags), default=(1, 0, 0))
-    return f"v{major}.{minor}.{patch + 1}"
+    major, minor, patch = max((major, minor, patch + 1), declared or (0, 0, 0))
+    return f"v{major}.{minor}.{patch}"
 
 
 def ancestor(a, b):
@@ -85,7 +97,7 @@ def reserve():
     if not qualifies(paths.splitlines()):
         print("No shipped changes since the previous stable release.")
         return
-    tag = choose_tag(tags, sha)
+    tag = choose_tag(tags, sha, declared_version())
     if tag not in tags:
         command("gh", "api", "--method", "POST", f"repos/{repo}/git/refs",
                 "-f", f"ref=refs/tags/{tag}", "-f", f"sha={sha}")
@@ -94,14 +106,27 @@ def reserve():
 
 
 def publish():
+    """Create the GitHub release with its assets. A rerun never replaces anything: it only adds missing assets."""
     repo = os.environ["GITHUB_REPOSITORY"]
     tag = os.environ["RELEASE_TAG"]
     previous = os.environ.get("PREVIOUS_TAG")
-    argv = ["gh", "release", "create", tag, "--repo", repo, "--verify-tag",
-            "--title", tag, "--generate-notes"]
-    if previous:
-        argv += ["--notes-start-tag", previous]
-    subprocess.run(argv, check=True)
+    assets_dir = Path(os.environ.get("ASSETS_DIR", "dist"))
+    assets = sorted(path for path in assets_dir.glob("*") if path.is_file())
+    exists = subprocess.run(["gh", "release", "view", tag, "--repo", repo],
+                            capture_output=True).returncode == 0
+    if not exists:
+        argv = ["gh", "release", "create", tag, *map(str, assets), "--repo", repo, "--verify-tag",
+                "--title", tag, "--generate-notes"]
+        if previous:
+            argv += ["--notes-start-tag", previous]
+        subprocess.run(argv, check=True)
+        return
+    have = {asset["name"] for asset in json.loads(
+        command("gh", "release", "view", tag, "--repo", repo, "--json", "assets"))["assets"]}
+    missing = [str(path) for path in assets if path.name not in have]
+    print(f"Release {tag} already exists; uploading {len(missing)} missing asset(s).")
+    if missing:
+        subprocess.run(["gh", "release", "upload", tag, *missing, "--repo", repo], check=True)
 
 
 if __name__ == "__main__":
