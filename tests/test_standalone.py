@@ -74,10 +74,11 @@ class InstallerTests:
         self.server = HTTPServer(("127.0.0.1", 0), Receiver)
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
         self.temp = tempfile.TemporaryDirectory()
-        self.home = Path(self.temp.name) / "home"
+        root = Path(self.temp.name).resolve()  # expands Windows 8.3 short names such as RUNNER~1
+        self.home = root / "home"
         (self.home / ".copilot").mkdir(parents=True)
-        self.dir = Path(self.temp.name) / "hooks"
-        self.token = Path(self.temp.name) / "token.txt"
+        self.dir = root / "hooks"
+        self.token = root / "token.txt"
         self.token.write_text(TOKEN, encoding="utf-8")
         self.url = f"http://127.0.0.1:{self.server.server_port}"
         self.release = RELEASES.name
@@ -129,7 +130,7 @@ class InstallerTests:
         self.assertEqual(len(list(self.registration().parent.glob("ai-watch.json*"))), 1)
 
     def test_a_tampered_bundle_is_rejected(self):
-        tampered = Path(self.temp.name) / "tampered"
+        tampered = self.dir.parent / "tampered"
         shutil.copytree(RELEASES.name, tampered)
         with (tampered / TAG / f"ai-watch-hooks-{TAG}.zip").open("ab") as archive:
             archive.write(b"tampered")
