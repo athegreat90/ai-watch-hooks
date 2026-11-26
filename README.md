@@ -6,7 +6,7 @@ Standard-library Python hooks that report what your AI coding agents are doing (
 agent CLI --hook event--> hook.py --POST /api/events--> server --> watch
 ```
 
-Related repositories: [server](https://github.com/athegreat90/ai-watch-server) | [firmware](https://github.com/athegreat90/ai-watch-firmware). This is hooks v1.2.0. It works with the AI Watch server 1.1.x (the Go server and the older Python server share the same `/api/events` and `/api/limits` contract).
+Related repositories: [server](https://github.com/athegreat90/ai-watch-server) | [firmware](https://github.com/athegreat90/ai-watch-firmware). This is hooks 1.2 (see the [latest release](https://github.com/athegreat90/ai-watch-hooks/releases/latest) for the exact version). It works with the AI Watch server 1.1.x (the Go server and the older Python server share the same `/api/events` and `/api/limits` contract).
 
 ## Contents
 

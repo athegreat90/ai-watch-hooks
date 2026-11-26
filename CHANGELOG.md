@@ -2,7 +2,13 @@
 
 ## [Unreleased]
 
+## [1.2.2]
+
+CI and documentation only: no shipped file changed, so no separate image or bundle is published for this version. Its changes ship with the next release (the release tag follows this changelog, so that release is `v1.2.2` or higher).
+
 - The daily remediation workflow authenticates the security GitHub App by Client ID (`SECURITY_APP_CLIENT_ID`) instead of the deprecated App ID.
+- `docs/MAINTAINING.md` names the GitHub App permissions (Contents, Issues and Pull requests: Read and write) and what a 403 means; `main` is protected (required checks: `native` x4, `images` x2, `source`).
+- `MEMORY.md` records the remediation, GitHub App login and branch protection decisions.
 
 ## [1.2.1]
 
