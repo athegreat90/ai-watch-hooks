@@ -18,7 +18,7 @@ The tag is the next patch after the highest stable tag, unless the newest `## [X
 
 ## Security automation
 
-CI scans images and Python source. Daily remediation validates pinned Python image updates before opening a PR. Set repository variable SECURITY_APP_ID and secret SECURITY_APP_PRIVATE_KEY using a GitHub App installed on this repository with Contents, Pull requests and Issues write permissions. Require passing checks and human review on main. Review findings without a patch in the daily tracking issue.
+CI scans images and Python source. Daily remediation validates pinned Python image updates before opening a PR. Set repository variable SECURITY_APP_CLIENT_ID (the app's Client ID, not its numeric App ID, which is deprecated for this action) and secret SECURITY_APP_PRIVATE_KEY using a GitHub App installed on this repository with Contents, Pull requests and Issues set to Read and write (a 403 on push or on updating the issue means the installation has not accepted those permissions). Require passing checks and human review on main. Review findings without a patch in the daily tracking issue.
 
 ## Notes
 
