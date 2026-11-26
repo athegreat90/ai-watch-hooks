@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- The daily remediation workflow authenticates the security GitHub App by Client ID (`SECURITY_APP_CLIENT_ID`) instead of the deprecated App ID.
+
 ## [1.2.1]
 
 - Refresh the `python:3.15.2-slim-bookworm` base image digest (automatic security remediation). The Python version and the hook code are unchanged.
