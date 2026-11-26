@@ -46,6 +46,10 @@ jobs:
         run: bash release/push-image.sh
       - if: steps.version.outputs.tag != ''
         env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: bash release/assets.sh
+      - if: steps.version.outputs.tag != ''
+        env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.version.outputs.tag }}
           PREVIOUS_TAG: ${{ steps.version.outputs.previous }}

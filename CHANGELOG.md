@@ -2,7 +2,24 @@
 
 ## [Unreleased]
 
-## [1.1.2]
+## [1.2.0]
+
+### Added
+
+- Standalone install without the repository: each release now publishes `ai-watch-hooks-<tag>.zip`, `install.sh`, `install.ps1` and `SHA256SUMS`. The installers verify the bundle checksum, keep the code in a permanent folder (`~/.local/share/ai-watch-hooks` or `%LOCALAPPDATA%i-watch-hooks`), create `config.local.json` once from `--url` and a token file, `AI_WATCH_TOKEN` or a hidden prompt, register the hooks and send a test event.
+- Installer flags `--version`, `--update`, `--uninstall`, `--purge`, `--agent`, `--no-test` (PowerShell: `-Version`, `-Update`, `-Uninstall`, `-Purge`, `-Agent`, `-NoTest`).
+- `install.py --check-url URL` validates a server origin with the hook's own rules.
+- End-to-end installer tests (bash, Windows PowerShell 5.1 and PowerShell 7) and release tooling tests.
+
+### Changed
+
+- `install.py` skips the exact-Python-patch check when `.python-version` is absent, as in the standalone bundle. A clone still enforces it.
+- `hook.py` builds its connection in a new `connect()` function; delivery behavior is unchanged.
+- The release version now follows the newest `## [X.Y.Z]` heading of this changelog when it is higher than the next patch, so a minor release is declared by editing the changelog.
+- Update `actions/create-github-app-token` to 3.4.0 in the daily remediation workflow (replaces Dependabot PR #12).
+- README rewritten: standalone install, options, update, uninstall, migration, privacy and security, troubleshooting, layout.
+
+### Fixed
 
 - List each finding once in the daily vulnerability issue.
 

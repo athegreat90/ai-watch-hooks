@@ -2,7 +2,19 @@
 
 ## Releases
 
-A successful code-changing push to main produces one new patch release. Reruns reuse its version. Documentation-only changes do not need a new version. See [GitHub Releases](https://github.com/athegreat90/ai-watch-hooks/releases).
+A successful code-changing push to main produces one new release. Reruns reuse its version. Documentation-only changes do not need a new version. See [GitHub Releases](https://github.com/athegreat90/ai-watch-hooks/releases).
+
+### Choosing the version
+
+The tag is the next patch after the highest stable tag, unless the newest `## [X.Y.Z]` heading of `CHANGELOG.md` is higher: then that version is used. To ship a minor or major release, add its heading to the changelog in the pull request. A heading that is not higher than the next patch changes nothing. See `choose_tag` in `release/automatic.py`.
+
+### Release assets
+
+`release/assets.sh` builds `ai-watch-hooks-<tag>.zip`, `install.sh`, `install.ps1` and `SHA256SUMS` into `dist/`. The archive is reproducible (fixed timestamps, stable order). `automatic.py publish` creates the release with these files; a rerun only uploads the ones that are missing and never replaces an existing asset.
+
+### Testing the installers
+
+`python -m unittest discover -s tests -v` builds the assets locally and runs `install.sh` and `install.ps1` against them (`file://` release, isolated home, local receiver). Bash is required; PowerShell tests run when `pwsh` or `powershell` is found, or the executable named by `AI_WATCH_TEST_POWERSHELL`. After a release, install once from the published assets on a clean machine or folder (`--dir`) before announcing it.
 
 ## Security automation
 
