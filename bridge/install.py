@@ -190,9 +190,21 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--agent", choices=["all", *EVENTS], default="all")
     parser.add_argument("--uninstall", action="store_true")
+    parser.add_argument("--check-url", metavar="URL", help="validate a server origin with the hook's rules and exit")
     args = parser.parse_args()
-    wanted = (HERE.parent / ".python-version").read_text().strip()
-    if not args.uninstall and ".".join(map(str, sys.version_info[:3])) != wanted:
+    if args.check_url:
+        try:
+            from bridge import hook
+        except ImportError:  # executed as a script: bridge/ is sys.path[0]
+            import hook
+        try:
+            hook.connect(args.check_url).close()
+        except ValueError as error:
+            parser.error(str(error))
+        return
+    pin = HERE.parent / ".python-version"  # absent in the standalone bundle, which runs on any recent Python 3
+    wanted = pin.read_text().strip() if pin.exists() else None
+    if wanted and not args.uninstall and ".".join(map(str, sys.version_info[:3])) != wanted:
         parser.error(f"Install and invoke Python {wanted} before registering hooks.")
     failures = []
     for agent in (EVENTS if args.agent == "all" else [args.agent]):
