@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [1.2.1]
+
+- Refresh the `python:3.15.2-slim-bookworm` base image digest (automatic security remediation). The Python version and the hook code are unchanged.
 - Daily remediation keeps a single "Daily container vulnerability findings" issue: the lookup lists open issues instead of using the search API, which found nothing for the GitHub App token and opened a new issue every day. A stubbed test runs in CI.
 
 ## [1.2.0]
